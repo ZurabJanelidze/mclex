@@ -1,10 +1,10 @@
 print('')
 print('+------------------------------------------------------------------+')
-print('|  MSLex Ver 2 (September 2020). Python implementation.            |')
-print('|  Classificator of matrix systems of lex categories.              |')
+print('|  MCLex Ver 4 (September 2020). Python implementation.            |')
+print('|  Classificator of matrix classes of lex categories.              |')
 print('+------------------------------------------------------------------+')
 
-# Note: to get started, read input.mslex
+# Note: to get started, read input.mclex
 # Packages
 #---------
 import sys
@@ -24,9 +24,9 @@ if platform == "win32":
 
 # Global variables
 #---------
-# This stores text written in output.mslex upon conclusion of execution
+# This stores text written in output.mclex upon conclusion of execution
 Output=[]
-# This stores instructions read from input.mslex
+# This stores instructions read from input.mclex
 Tasks=[]
 
 # Operations on individual matrices
@@ -300,7 +300,7 @@ def implicationTable(matrices,h,v,c):
     print('Implication table succefully generated. Time taken: '+str(int((end-start)))+' seconds.')
     sys.stdout.write('\033[K')
     return table
-# Returns proper matrices in the list       
+# Returns proper matrices in the list
 def proper(matrices,h,v,c):
     transform=initialize([i for i in range(1,v*v)],2,v)
     proper=[]
@@ -375,7 +375,13 @@ def properd(h,v,c):
                     break
                 for row2 in range(row1+1,h):
                     col=columns([M1rows[row1],M1rows[row2]],2,v)
-                    if toNumber(M1rows[row2],M1length,v)<toNumber(M1rows[row1],M1length,v):
+                    rownum2=toNumber(M1rows[row2],M1length,v)
+                    rownum1=toNumber(M1rows[row1],M1length,v)
+                    if rownum2<rownum1:
+                        keep=False
+                        eliminated=eliminated+1
+                        break
+                    if rownum2==rownum1 and rownum1!=0 and rownum2!=0:
                         keep=False
                         eliminated=eliminated+1
                         break
@@ -396,7 +402,8 @@ def properd(h,v,c):
     print('Extraction successfully completed. Time taken: '+str(int((end-start)))+' seconds.')
     return proper
 # The same as before but only selects matrices implying a given matrix
-def properimplying(matrix,matrices,h,v,c):
+def properimplying(matrix,h,v,c):
+    matrices=[matrixFor(i,h,v) for i in range(1,2**((v**h)-1))]
     transform=initialize([i for i in range(1,v*v)],2,v)
     transform2=initialize([i for i in range(1,v**h)],h,v)
     proper=[]
@@ -528,6 +535,21 @@ def rowNumbers(matrices,h,v):
                 uniquerows.append(row)
         num[i]=len(uniquerows)
     return num    
+def nonzerodistinctrowNumber(matrix,h,v):
+    zerorowpresent=False
+    uniquerows=[]
+    zerorowpresent=False
+    for j in range(0,h):
+        row=rows(matrix,h,v)[j]
+        if rows(matrix,h,v)[j] not in uniquerows:
+            uniquerows.append(row)
+            if toNumber(row,len(row),v)==0:
+                zerorowpresent=True
+    num=len(uniquerows)
+    if zerorowpresent==False:
+        return num
+    elif zerorowpresent==True:
+        return num-1      
 # Chooses a canonical member each equivalence class of matrices
 def canonicalRepresentation(table,matrices,h,v):
     length=len(matrices)
@@ -566,11 +588,10 @@ def decode(data):
 
 # Output operations
 #--------------------------------------------------------
-# See description of codes in input.mslex    
+# See description of codes in input.mclex    
 def code1(h,v,c):
     start = time.time()
-    transform=initialize([i for i in range(1,v**h)],h,v)
-    matrices=proper([matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properd(h,v,c)
     matrices.sort(key=len)
     end = time.time()
     Output.append('List of all proper matrices for h='+str(h)+', v='+str(v)+', c='+str(c)+':')
@@ -580,7 +601,7 @@ def code1(h,v,c):
 def code2(M1,h,v,c):
     start = time.time()
     transform=initialize([i for i in range(1,v**h)],h,v)
-    matrices=proper([matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properd(h,v,c)
     matrices.sort(key=len)
     impliedmatrices=[]
     print('')
@@ -596,7 +617,7 @@ def code2(M1,h,v,c):
 def code3(M1,h,v,c):
     start = time.time()
     transform=initialize([i for i in range(1,v**h)],h,v)
-    matrices=proper([matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properd(h,v,c)
     matrices.sort(key=len)
     impliedmatrices=[]
     print('')
@@ -633,7 +654,7 @@ def code13(codeline,h,v,c):
     print('Task (code 13) completed in '+str(int((end-start)))+' seconds.')
 def code15(h,v,c):
     start = time.time()
-    matrices=proper([matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properd(h,v,c)
     table=implicationTable(matrices,h,v,c)
     canonicalRepresentation(table,matrices,h,v)
     newtable=trimPoset(table)
@@ -654,7 +675,7 @@ def code16(P1,P2,Q,h,v):
     print('Task (code 16) completed in '+str(int((end-start)))+' seconds.')
 def code17(matrix,h,v,c):
     start = time.time()
-    matrices=properimplying(matrix,[matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properimplying(matrix,h,v,c)
     table=implicationTable(matrices,h,v,c)
     canonicalRepresentation(table,matrices,h,v)
     newtable=trimPoset(table)
@@ -674,7 +695,7 @@ def code18(matrix,h,v,c):
     print('Task (code 18) completed in '+str(int((end-start)))+' seconds.')
 def code19(matrix,h,v,c):
     start = time.time()
-    matrices=proper([matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properd(h,v,c)
     table=implicationTable(matrices,h,v,c)
     canonicalRepresentation(table,matrices,h,v)
     writeClassesFOLDERS(table,matrices,h,v,c)
@@ -683,7 +704,7 @@ def code19(matrix,h,v,c):
     print('Task (code 19) completed in '+str(int((end-start)))+' seconds.')
 def code20(matrix,h,v,c):
     start = time.time()
-    matrices=proper([matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properd(h,v,c)
     table=implicationTable(matrices,h,v,c)
     canonicalRepresentation(table,matrices,h,v)
     writeClassesGIFS(table,matrices,h,v,c)
@@ -712,7 +733,7 @@ def code22(h,v,c):
     print('Task (code 22) completed in '+str(int((end-start)))+' seconds.')
 def code23(h,v,c):
     start = time.time()
-    matrices=proper([matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properd(h,v,c)
     table=implicationTable(matrices,h,v,c)
     canonicalRepresentation(table,matrices,h,v)
     newtable=trimPoset(table)
@@ -722,7 +743,7 @@ def code23(h,v,c):
     print('Task (code 23) completed in '+str(int((end-start)))+' seconds.')
 def code24(matrix,h,v,c):
     start = time.time()
-    matrices=properimplying(matrix,[matrixFor(i,h,v) for i in range(1,2**((v**h)-1))],h,v,c)
+    matrices=properimplying(matrix,h,v,c)
     table=implicationTable(matrices,h,v,c)
     canonicalRepresentation(table,matrices,h,v)
     newtable=trimPoset(table)
@@ -773,8 +794,40 @@ def writeTable(table,matrices,h,v,c):
                         Output.append(str(i)+' -> '+str(j))
                         written[i][j]=1
     Output.append('}\n')
+
+def writeMatrix(path,matrix,h,v,zoom):
+    dim1=len(matrix)
+    dim2=nonzerodistinctrowNumber(matrix,h,v)
+    im= Image.new('RGB', (dim1*8+1,dim2*8+1))
+    rowsofmatrix=[]
+    repeat=0
+    im.putpixel((dim1*8,0),(150,150,150))
+    for j in range(0,h):
+        row=rows(matrix,h,v)[j]
+        if row not in rowsofmatrix and toNumber(row,dim1,v)!=0:
+            im.putpixel((0,j-repeat),(150,150,150))
+            for k in range(0,dim1):
+                rowsofmatrix.append(row)
+                for r in range(0,9):
+                    for s in range(0,9):
+                        if r==0:
+                            im.putpixel((k*8+s,(j-repeat)*8+r),(150,150,150)) 
+                        else:
+                            if s==0:
+                                im.putpixel((k*8,(j-repeat)*8+r),(150,150,150))
+                            elif s==8:
+                                im.putpixel((k*8+s,(j-repeat)*8+r),(150,150,150))
+                            else:
+                                im.putpixel((k*8+s,(j-repeat)*8+r),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
+        else:
+            repeat=repeat+1
+    for k in range(0,dim1*8+1):
+        im.putpixel((k,dim2*8),(150,150,150))
+    newim=im.resize(((dim1*8+1)*zoom,(dim2*8+1)*zoom), resample=Image.BOX)
+    newim.save(path+'['+str(h)+','+str(v)+']'+str(matrix)+'.png')
+
 def writeTableNew(table,matrices,h,v,c):
-    path = 'MatricesNew['+str(h)+','+str(v)+','+str(c)+']/'
+    path = 'Matrices['+str(h)+','+str(v)+','+str(c)+']/'
     try:
         os.mkdir(path)
     except OSError:
@@ -786,44 +839,10 @@ def writeTableNew(table,matrices,h,v,c):
     Output.append('node[imagescale=false,fixedsize="false",width="0",height="0",color="gray",shape="plaintext"];')
     Output.append('edge[arrowhead=vee, arrowsize=0.5];')
     length=len(matrices)
-    rowno=rowNumbers(matrices,h,v)
     for i in range(0,length):
         if table[i][length]==i:
-            dim1=len(matrices[table[length][i]])
-            dim2=rowno[table[length][i]]
-            im= Image.new('RGB', (dim1*8+1,dim2*8+1))
-            rowsofmatrix=[]
-            repeat=0
-            im.putpixel((dim1*8,0),(150,150,150))
-            for j in range(0,h):
-                row=rows(matrices[table[length][i]],h,v)[j]
-                if row not in rowsofmatrix:
-                    im.putpixel((0,j-repeat),(150,150,150))
-                    for k in range(0,dim1):
-                        rowsofmatrix.append(row)
-                        for r in range(0,9):
-                            for s in range(0,9):
-                                if r==0:
-                                    im.putpixel((k*8+s,(j-repeat)*8+r),(150,150,150)) 
-                                else:
-                                    if s==0:
-                                        im.putpixel((k*8,(j-repeat)*8+r),(150,150,150))
-                                    elif s==8:
-                                        im.putpixel((k*8+s,(j-repeat)*8+r),(150,150,150))
-                                    else:
-                                        im.putpixel((k*8+s,(j-repeat)*8+r),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                        #im.putpixel((2*dim1-k-1,j-repeat),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                        #im.putpixel((k,2*dim2-j+repeat-1),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                        #im.putpixel((2*dim1-k-1,2*dim2-j+repeat-1),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                    #im.putpixel((dim1*8,j*8),(150,150,150))
-                else:
-                    repeat=repeat+1
-            for k in range(0,dim1*8+1):
-                im.putpixel((k,dim2*8),(150,150,150))
-            newim=im.resize(((dim1*8+1)*7,(dim2*8+1)*7), resample=Image.BOX)
-            newim.save(path+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.png')
+            writeMatrix(path,matrices[table[length][i]],h,v,7)
             Output.append(str(i)+' [image="['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.png", label=""];')   
-
     written=[[0 for j in range(0,length)] for i in range(0,length)]
     for i in range(0,length):
         for j in range(0,length):
@@ -844,41 +863,22 @@ def writeSite(table,untrimmed,matrices,h,v,c):
     #Output.append('node[imagescale=false,fixedsize="false",width="0",height="0",color="gray"];')
     #Output.append('edge[arrowhead=vee, arrowsize=0.5];')
     length=len(matrices)
-    rowno=rowNumbers(matrices,h,v)
     for i in range(0,length):
-        dim1=len(matrices[i])
-        dim2=h
-        im= Image.new('RGB', (dim1*2,dim2*2))
-        #rowsofmatrix=[]
-        repeat=0
-        for j in range(0,h):
-            row=rows(matrices[i],h,v)[j]
-            #if row not in rowsofmatrix:
-            for k in range(0,dim1):
-                #rowsofmatrix.append(row)
-                im.putpixel((k,j-repeat),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                im.putpixel((2*dim1-k-1,j-repeat),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                im.putpixel((k,2*dim2-j+repeat-1),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                im.putpixel((2*dim1-k-1,2*dim2-j+repeat-1),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-            #else:
-                #repeat=repeat+1
-        newim=im.resize((dim1*15,dim2*15), resample=Image.BOX)
-        newim.save(path+'['+str(h)+','+str(v)+']'+str(matrices[i])+'.png')   
         if table[i][length]==i:
-            #if not os.path.isfile(path+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.mslex'):
-            file = open(path+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.mslex','w+')
+            #if not os.path.isfile(path+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.mclex'):
+            file = open(path+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.mclex','w+')
             file.write('#'+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'\n')
             file.write('\n')
-            file.write('It seems like this matrix system has not been studied yet.') 
+            file.write('It seems like this matrix class has not been studied yet.') 
             file = open(path+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.html','w+')
             file.write('<!DOCTYPE html>'+'\n')
             file.write('<html>'+'\n')
             file.write('<body>'+'\n')
-            file.write('<center><h1>Matrix system #'+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'</h1></center>'+'\n')
+            file.write('<center><h1>Matrix class #'+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'</h1></center>'+'\n')
             file.write('<center><p><img src="'+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.png'+'"></p></center>'+'\n')
-            file.write('<center><p><iframe src="'+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.mslex'+'" width="90%" height="200"></iframe></p></center>'+'\n')
+            file.write('<center><p><iframe src="'+'['+str(h)+','+str(v)+']'+str(matrices[table[length][i]])+'.mclex'+'" width="90%" height="200"></iframe></p></center>'+'\n')
             file.write('<hr>')
-            file.write('<center><h2>'+'immediate ['+str(h)+','+str(v)+','+str(c)+']'+' supersystems</h2></center>'+'\n')
+            file.write('<center><h2>'+'immediate ['+str(h)+','+str(v)+','+str(c)+']'+' superclasses</h2></center>'+'\n')
             file.write('<center>'+'\n')
             written=[[0 for j in range(0,length)] for i in range(0,length)]
             for j in range(0,length):
@@ -887,7 +887,7 @@ def writeSite(table,untrimmed,matrices,h,v,c):
                         written[i][j]=1
             file.write('</center>'+'\n')
             file.write('<hr>')
-            file.write('<center><h2>'+'immediate ['+str(h)+','+str(v)+','+str(c)+']'+' subsystems</h2></center>'+'\n')
+            file.write('<center><h2>'+'immediate ['+str(h)+','+str(v)+','+str(c)+']'+' subclasses</h2></center>'+'\n')
             file.write('<center>'+'\n')
             written=[[0 for j in range(0,length)] for i in range(0,length)]
             for j in range(0,length):
@@ -905,7 +905,7 @@ def writeSite(table,untrimmed,matrices,h,v,c):
                         #written[j][i]=1
             file.write('</center>'+'\n')
             file.write('<hr>')
-            file.write('<center><h2>'+'all ['+str(h)+','+str(v)+','+str(c)+']'+' supersystems</h2></center>'+'\n')
+            file.write('<center><h2>'+'all ['+str(h)+','+str(v)+','+str(c)+']'+' superclasses</h2></center>'+'\n')
             file.write('<center>'+'\n')
             written=[[0 for j in range(0,length)] for i in range(0,length)]
             for j in range(0,length):
@@ -914,7 +914,7 @@ def writeSite(table,untrimmed,matrices,h,v,c):
                         written[i][j]=1
             file.write('</center>'+'\n')
             file.write('<hr>')
-            file.write('<center><h2>'+'all ['+str(h)+','+str(v)+','+str(c)+']'+' subsystems</h2></center>'+'\n')
+            file.write('<center><h2>'+'all ['+str(h)+','+str(v)+','+str(c)+']'+' subclasses</h2></center>'+'\n')
             file.write('<center>'+'\n')
             written=[[0 for j in range(0,length)] for i in range(0,length)]
             for j in range(0,length):
@@ -926,6 +926,7 @@ def writeSite(table,untrimmed,matrices,h,v,c):
             file.write('</body>'+'\n')
             file.write('</html>'+'\n')
             file.close
+        writeMatrix(path,matrices[i],h,v,2)
 def writeClassesFOLDERS(table,matrices,h,v,c):
     print('')
     length=len(matrices)
@@ -935,18 +936,8 @@ def writeClassesFOLDERS(table,matrices,h,v,c):
             os.makedirs(path)
             print('Folder '+path+' created.')
         except:
-            print('Folder '+path+' already exists. Will save images in this folder.')    
-        dim1=len(matrices[i])
-        im= Image.new('RGB', (dim1*2,h*2))
-        for j in range(0,h):
-            row=rows(matrices[i],h,v)[j]
-            for k in range(0,dim1):
-                im.putpixel((k,j),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                im.putpixel((2*dim1-k-1,j),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                im.putpixel((k,2*h-j-1),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-                im.putpixel((2*dim1-k-1,2*h-j-1),(255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1)),255-(row[k])*int(255/(v-1))))
-        newim=im.resize((dim1*40,h*40), resample=Image.BOX)
-        newim.save(path+'['+str(h)+','+str(v)+']'+str(matrices[i])+'.png')
+            print('Folder '+path+' already exists. Will save images in this folder.') 
+        writeMatrix(path,matrices[i],h,v,2)   
 def writeClassesGIFS(table,matrices,h,v,c):
     print('')
     length=len(matrices)
@@ -976,11 +967,11 @@ def writeClassesGIFS(table,matrices,h,v,c):
 # User-end functions
 #-------------------
 TASK=''
-file = open('input.mslex','r')
+file = open('input.mclex','r')
 Tasks=file.readlines()
 file.close
 print('')
-print('Running MSLex: '+str(datetime.datetime.now()))
+print('Running MCLex: '+str(datetime.datetime.now()))
 for task in Tasks:
     if task[0]=='>':
         taskread=encode(task)
@@ -1021,7 +1012,7 @@ for task in Tasks:
         else:
             print('Task code '+str(taskread[0][0])+' is not recognized.')
         print('')
-file = open('output.mslex','a+')
+file = open('output.mclex','a+')
 for line in Output:
     file.write(line+'\n')
 file.close
