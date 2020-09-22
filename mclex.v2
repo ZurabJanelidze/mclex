@@ -1,6 +1,6 @@
 print('')
 print('+------------------------------------------------------------------+')
-print('|  MSLex Ver 2 (September 2020). Python implementation.            |')
+print('|  MCLex Ver 2 (September 2020). Python implementation.            |')
 print('|  Classificator of matrix systems of lex categories.              |')
 print('+------------------------------------------------------------------+')
 
