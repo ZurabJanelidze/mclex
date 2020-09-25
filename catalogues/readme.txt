@@ -1,0 +1,1 @@
+Each of the zip files in this folder contains a navigatable website of the catalogue of matrix classes given by matrices of the dimensions specified in the title of the zip file (the three dimensions are maximum row, variable and column numbers).
