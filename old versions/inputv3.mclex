@@ -1,0 +1,103 @@
++------------------------------------------------------------------+
+|  MCLex Ver 3 (September 2020). Python implementation.            |
+|  Input file.                                                     |
++------------------------------------------------------------------+
+
+Introduction
+
+Use this file to give instructions to MSLex. 
+Instructions are entered as 'codeline'. 
+It looks like this: 
+
+> 0 3 2 0,
+
+A codeline must begin with '>' and end with ','. 
+It must appear on a separate line. 
+All other lines are ignored by MSLex. 
+A matrix is said to imply another when the corresponding matrix system inclusion holds.
+Two matrices are equivalent when they determine the same matrix system. 
+Run python 3 on mslex.py after saving this file with your codelines.
+MSLex will write output to output.mslex (note that the file must exist before compiling mslex.py).
+
+Codeline syntax
+
+The first number in the codeline refers to the type of task to be executed - the "task code".
+See below for description of task codes.
+The remaining numbers are parameters (h=3, v=2 and c=0 in the example above):
+    - h is matrix height (number of rows),
+    - v is the number of variables the matrix contains,
+    - c is the upper bound on the number of columns (0 = no upped bound).
+A code line may list one or more input matrices after the comma. 
+See below for how matrices are listed.
+Any characters other than the space, comma and numbers will be ignored in codelines.
+
+Matrix syntax 
+
+Each matrix is encoded as a sequence of columns represented by numbers as follows.
+Transpose the column, ignore the leading 0's. 
+Then, the next sequence of entries in the column give base v representation of the number.
+Here v is the value of the corresponding parameter in the codeline.
+MSLex will output only writes proper matrices, which are matrices satisfying the following:
+    - it is is double-lexi ordered without repetition of columns (any matrix system has such representative) 
+    - it has at least three columns (otherwise matrix system is degenerate)
+    - it is non-trivial (otherwise matrix system is degenerate)
+    - it does not contain a column of 0's (otherwise matrix system is degenerate)
+    - it is nonempty
+Here is an example: the Mal'tsev matrix
+    011
+    101
+would be encoded as (the comma is deliberate)
+    1 2 3,
+The following lists the Mal'tsev matrix following by the majority matrix:
+    1 2 3, 1 2 4,
+Note that this encoding depends on the parameter v.
+
+Task codes
+
+0 - does nothing
+    Example: > 0 THIS WILL DO NOTHING
+1 - outputs all proper matrices
+    Example: > 1 3 2 3,
+    Outputs all proper 3x3 matrices with 2 variables 
+2 - outputs all proper matrices implying the input matrix
+    Example: > 2 3 2 3, 1 2 3,
+    Outputs all proper 3x3 matrices implying the Mal'tsev matrix
+3 - outputs all proper matrices equivalent to the input matrix
+    Example: > 3 3 2 3, 1 2 3,
+    Outputs all proper 3x3 matrices equivalent to the Mal'tsev matrix
+6 - outputs logical dependence of two input matrices
+    Example: > 6 3 2 3, 1 2 3, 1 2 4,
+    Outputs where the Mal'tsev and the majority matrices imply each other
+13 - outputs all proper matrices in the given list of input matrices
+    Example: > 13 3 2 3, 1 2 3, 1 3 2, 2 3 1,
+    Outputs the first of the input matrices, since the others are not proper
+15 - outputs the poset of non-degenerate matrix systems in Graphviz format and creates a folder with matrix images
+    Example: > 15 3 2 3,
+    Outputs the poset of non-degenerate matrix systems given by 3x3 matrices with 2 variables
+16 - outputs whether two input matrices toghether (conjunction) imply the thrid one
+    Example: > 16 3 2 3, 1 2 3, 1 2 4, 1 2 7,
+    Outputs the result that the conjunction of the Mal'tsev and majority properties implies arithmeticity
+17 - code 15 restricted to the downset of an input matrix
+    Example: > 17 3 2 3, 1 2 3,
+    Outputs the poset of non-degenerate subsystems of the Mal'tsev system given by 3x3 matrices and 2 variables
+18 - code 15 restricted to the upset of an input matrix
+    Example: > 18 3 2 0, 1 2 3,
+    Outputs the poset of non-degenerate supersystems of the Mal'tsev system given by 3-row matrices and 2 variables
+19 - creates folders of equivalent proper matrices
+    Example: > 19 3 2 0,
+    Creates folders of equivalent proper 2-variable 3-row matrices
+20 - creates gif files of equivalent proper matrices
+    Example: > 20 3 2 0,
+    Creates gif files of equivalent proper 2-variable 3-row matrices
+21 - proof of matrix implication (note: the proof may include unnecessary steps)
+    Example: > 21 3 2 0, 1 6 7, 1 2 3,
+    Outputs proof that the arithmetical matrix implies the Mal'tsev matrix
+22 - same as code 15, but with a different way of displaying matrices
+    Example: > 22 3 2 3,
+    Outputs the poset of non-degenerate matrix systems given by 3x3 matrices with 2 variables
+23 - creates navigatable website for the poset of non-degenerate matrices
+    Example: > 22 3 2 3,
+    Outputs navigatable website for the poset of non-degenerate matrix systems given by 3x3 matrices with 2 variables
+24 - same as code 17, but with a different way of displaying matrices
+    Example: > 24 3 2 3, 1 2 3,
+    Outputs the poset of non-degenerate subsystems of the Mal'tsev system given by 3x3 matrices and 2 variables

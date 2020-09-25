@@ -31,7 +31,7 @@ Tasks=[]
 
 # Operations on individual matrices
 #----------------------------------
-# Speed efficient method for deciding whether M1 implies M2 
+# Method for deciding whether M1 implies M2 
 def sharper(M1,M2,h,v,transform):
     loop = True
     while loop:
@@ -43,40 +43,6 @@ def sharper(M1,M2,h,v,transform):
                     extend=True
                     for colM1 in M1:
                         newcolM1=transform[colM1][i][j]
-                        if newcolM1 not in M2:
-                            extend=False
-                            break
-                    if extend==True:
-                        if newcol==0:
-                            return True
-                        M2.append(newcol)
-                        loop=True
-    return False
-# Memory efficient method for deciding whether M1 implies M2     
-def sharperME(M1,M2,h,v):
-    print('Checking implication '+str(M1)+' => '+str(M2)+'.')
-    loop = True
-    while loop:
-        loop=False
-        for i in range(0,h**h):
-            for j in range(0,v**(v*h)):              
-                arr=toColumn(i,h,h)
-                sub=toColumn(j,v*h,v)
-                deccol=toColumn(0,h,v)
-                newcol=[0 for _ in range(0,h)]
-                for k in range(0,h):
-                    newcol[k]=sub[k*v+deccol[arr[k]]]
-                newcol=toNumber(newcol,h,v)
-                if newcol not in M2:
-                    extend=True
-                    for colM1 in M1:
-                        arr=toColumn(i,h,h)
-                        sub=toColumn(j,v*h,v)
-                        deccol=toColumn(colM1,h,v)
-                        newcol=[0 for _ in range(0,h)]
-                        for k in range(0,h):
-                            newcol[k]=sub[k*v+deccol[arr[k]]]
-                        newcolM1=toNumber(newcol,h,v)
                         if newcolM1 not in M2:
                             extend=False
                             break
@@ -135,21 +101,7 @@ def matrixFor(i,h,v):
             if binary[j]==1:
                 M.append(j)
     return M
-# Turns a matrix into an array of columns
-def juxtColumns(matrix,h,v):
-    array=[]
-    length=len(matrix)
-    for i in range(0,length):
-        array.append(toColumn(matrix[i],h,v))
-    return array
-# Turns an array of columns into a matrix (reading columns)
-def splitColumns(array,v):
-    matrix=[]
-    h=len(array[0])
-    for column in array:
-        matrix.append(toNumber(column,h,v))
-    return matrix
-
+    
 # Operations on columns
 #-----------------------
 # Generates the data of all possible transformations of columns
@@ -306,132 +258,6 @@ def implicationTable(matrices,h,v,c):
                         if table[l][k]==2:
                             M1extend=M1.copy()
                             revimp=sharper(M2,M1extend,h,v,transform)
-                            if revimp==True:
-                                for a in range(0,noMatrices):
-                                    if table[l][a]==2 and set(matrices[a])>=set(M1) and set(M1extend)>=set(matrices[a]):
-                                        table[l][a]=1
-                                        addedentries=addedentries+1
-                                table[l][noMatrices]=k
-                                table[noMatrices][l]=k
-                                discardedMatrices.append(M2)
-                                equivalent=equivalent+decode([M2])
-                            else:
-                                for a in range(0,noMatrices):
-                                    if table[l][a]==2 and set(matrices[a])>=set(M1) and set(M1extend)>=set(matrices[a]):
-                                        table[l][a]=0
-                                        addedentries=addedentries+1
-                        elif table[l][k]==1:
-                                table[l][noMatrices]=k
-                                table[noMatrices][l]=k
-                                discardedMatrices.append(M2)
-                                equivalent=equivalent+decode([M2])
-                entrycounter=entrycounter+addedentries
-                sys.stdout.write('\033[K')
-                sys.stdout.write('\033[K')
-                sys.stdout.write('\033[K')
-                print(str(M2count-1)+' checked for equivalence with the matrix '+str(M1)+'.')
-                print(str(len(discardedMatrices))+' matrices eliminated.')
-                print(str(entrycounter)+' implications worked out (not counting implications duplicate by equivalence).')
-                sys.stdout.write('\033[F')
-                sys.stdout.write('\033[F')
-                sys.stdout.write('\033[F')
-                addedentries=0
-    end = time.time()
-    sys.stdout.write('\033[F')
-    sys.stdout.write('\033[K')
-    sys.stdout.write('\033[K')
-    sys.stdout.write('\033[K')
-    sys.stdout.write('\033[K')
-    print(str(len(discardedMatrices))+' matrices eliminated.')
-    print(str(entrycounter)+' implications worked out (not counting implications duplicate by equivalence).')
-    sys.stdout.write('\033[K')
-    print('Implication table succefully generated. Time taken: '+str(int((end-start)))+' seconds.')
-    sys.stdout.write('\033[K')
-    return table
-# Returns implication table for a given list of matrices (memory efficient)
-# The last column and row indicate unique representative of each equivalence class
-def implicationTableME(matrices,h,v,c):
-    start=time.time()
-    matrices.sort(key=len)
-    discardedMatrices=[]
-    noMatrices=len(matrices)
-    table = [[2 for _ in range(0,noMatrices+1)] for _ in range(0,noMatrices+1)]
-    entrycounter=0
-    addedentries=noMatrices
-    print('')
-    print('Generating implication table for a total of '+str(noMatrices)+' matrices.')
-    for i in range(0,noMatrices):
-        table[i][i]=1
-    print('')
-    for k in range(0,noMatrices):
-        M1=matrices[k]
-        if M1 not in discardedMatrices:
-            table[k][noMatrices]=k
-            table[noMatrices][k]=k
-            sys.stdout.write('\033[F')
-            sys.stdout.write('\033[K')
-            print('At most '+str(min(noMatrices-len(discardedMatrices),noMatrices-k))+' matrices remaining to work on.')
-            equivalent=''
-            implies=''
-            M2count=0
-            for l in range(k+1,noMatrices):
-                M2=matrices[l]
-                if M2!=M1 and (M2 not in discardedMatrices):
-                    M2count=M2count+1
-                    if table[k][l]==2:
-                        M2extend=M2.copy()
-                        imp=sharperME(M1,M2extend,h,v)
-                        if imp==True:
-                            for a in range(0,noMatrices):
-                                if table[k][a]==2 and set(matrices[a])>=set(M2) and set(M2extend)>=set(matrices[a]):
-                                    table[k][a]=1
-                                    addedentries=addedentries+1
-                            implies=implies+decode([M2])
-                            if table[l][k]==2:
-                                M1extend=M1.copy()
-                                revimp=sharperME(M2,M1extend,h,v)
-                                if revimp==True:
-                                    for a in range(0,noMatrices):
-                                        if table[l][a]==2 and set(matrices[a])>=set(M1) and set(M1extend)>=set(matrices[a]):
-                                            table[l][a]=1 
-                                            addedentries=addedentries+1
-                                    table[l][noMatrices]=k
-                                    table[noMatrices][l]=k
-                                    discardedMatrices.append(M2)
-                                    equivalent=equivalent+decode([M2])
-                                else:
-                                    for a in range(0,noMatrices):
-                                        if table[l][a]==2 and set(matrices[a])>=set(M1) and set(M1extend)>=set(matrices[a]):
-                                            table[l][a]=0
-                                            addedentries=addedentries+1
-                            elif table[l][k]==1:
-                                    table[l][noMatrices]=k
-                                    table[noMatrices][l]=k
-                                    discardedMatrices.append(M2)
-                                    equivalent=equivalent+decode([M2])
-                        else:
-                            for a in range(0,noMatrices):
-                                if table[k][a]==2 and set(matrices[a])>=set(M2) and set(M2extend)>=set(matrices[a]):
-                                    table[k][a]=0
-                                    addedentries=addedentries+1
-                            if table[l][k]==2:
-                                M1extend=M1.copy()
-                                revimp=sharperME(M2,M1extend,h,v)
-                                if revimp==True:
-                                    for a in range(0,noMatrices):
-                                        if table[l][a]==2 and set(matrices[a])>=set(M1) and set(M1extend)>=set(matrices[a]):
-                                            table[l][a]=1
-                                            addedentries=addedentries+1
-                                else:
-                                    for a in range(0,noMatrices):
-                                        if table[l][a]==2 and set(matrices[a])>=set(M1) and set(M1extend)>=set(matrices[a]):
-                                            table[l][a]=0
-                                            addedentries=addedentries+1
-                    elif table[k][l]==1:
-                        implies=implies+decode([M2])
-                        if table[l][k]==2:
-                            M1extend=M1.copy()
-                            revimp=sharperME(M2,M1extend,h,v)
                             if revimp==True:
                                 for a in range(0,noMatrices):
                                     if table[l][a]==2 and set(matrices[a])>=set(M1) and set(M1extend)>=set(matrices[a]):
@@ -925,29 +751,6 @@ def code24(matrix,h,v,c):
     end = time.time()
     print('')
     print('Task (code 24) completed in '+str(int((end-start)))+' seconds.')
-def code25(codeline,h,v,c):
-    start = time.time()
-    matrices=proper([codeline[i] for i in range(1,len(codeline)-1)],h,v,c)
-    table=implicationTable(matrices,h,v,c)
-    canonicalRepresentation(table,matrices,h,v)
-    newtable=trimPoset(table)
-    writeTableNew(newtable,matrices,h,v,c)
-    end = time.time()
-    print('')
-    print('Task (code 25) completed in '+str(int((end-start)))+' seconds.')
-def code26(h,v,c,newv):
-    start = time.time()
-    matrices=properd(h,v,c)
-    matrices.sort(key=len)
-    newmatrices=[]
-    for matrix in matrices:
-        newmatrices.append(splitColumns(juxtColumns(matrix,h,v),newv))
-    end = time.time()
-    Output.append('List of all proper matrices for h='+str(h)+', v='+str(v)+', c='+str(c)+' encoded with v='+str(newv)+':')
-    Output.append(decode(newmatrices)+'\n')
-    print('')
-    print('Task (code 1) completed in '+str(int((end-start)))+' seconds.')
-
 def writeTable(table,matrices,h,v,c):
     path = 'Matrices['+str(h)+','+str(v)+','+str(c)+']/'
     try:
@@ -1163,7 +966,6 @@ def writeClassesGIFS(table,matrices,h,v,c):
 
 # User-end functions
 #-------------------
-
 TASK=''
 file = open('input.mclex','r')
 Tasks=file.readlines()
@@ -1207,10 +1009,6 @@ for task in Tasks:
             code23(taskread[0][1],taskread[0][2],taskread[0][3])
         elif taskread[0][0]==24:
             code24(taskread[1],taskread[0][1],taskread[0][2],taskread[0][3])
-        elif taskread[0][0]==25:
-            code25(taskread,taskread[0][1],taskread[0][2],taskread[0][3])
-        elif taskread[0][0]==26:
-            code26(taskread[0][1],taskread[0][2],taskread[0][3],taskread[0][4])
         else:
             print('Task code '+str(taskread[0][0])+' is not recognized.')
         print('')
